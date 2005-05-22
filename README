@@ -1,4 +1,4 @@
-Sub-Installer version 0.0.1
+Sub::Installer version 0.0.2
 
 This module provides two universal methods that any package/class can
 use to install subroutines in its own namespace.
