@@ -1,22 +1,11 @@
 package Sub::Installer;
 
-use version; $VERSION = qv('0.0.2');
+use version; $VERSION = qv('0.0.3');
 
 use warnings;
 use strict;
 use Carp;
 
-sub _normalize_sub {
-    my ($package_name, $sub_name, $sub_code) = @_;
-    if (!ref $sub_code) {
-        if ($sub_code !~ /\A \s* sub \s* [{] .* [}] \s* \Z/xms) {
-            $sub_code = "sub { $sub_code }";
-        }
-        $sub_code = eval "package $package_name; $sub_code"
-            or croak "Can't install invalid code: $@";
-    }
-    return $sub_code;
-}
 
 sub reinstall_sub {
     my ($package_name, $sub_def_ref) = @_;
@@ -28,7 +17,7 @@ sub reinstall_sub {
         no strict 'refs';
         *{$package_name.'::'.$sub_name}
             = $last_install
-            = _normalize_sub($package_name, $sub_name, $sub_def_ref->{$sub_name});
+            = Sub::Installer::Util::_normalize_sub($package_name, $sub_name, $sub_def_ref->{$sub_name});
     }
     return $last_install;
 }
@@ -44,11 +33,26 @@ sub install_sub {
         no strict 'refs';
         *{$package_name.'::'.$sub_name}
             = $last_install
-            = _normalize_sub($package_name, $sub_name, $sub_def_ref->{$sub_name});
+            = Sub::Installer::Util::_normalize_sub($package_name, $sub_name, $sub_def_ref->{$sub_name});
     }
     return $last_install;
 }
 
+package Sub::Installer::Util;
+
+use Carp;
+
+sub _normalize_sub {
+    my ($package_name, $sub_name, $sub_code) = @_;
+    if (!ref $sub_code) {
+        if ($sub_code !~ /\A \s* sub \s* [{] .* [}] \s* \Z/xms) {
+            $sub_code = "sub { $sub_code }";
+        }
+        $sub_code = eval "package $package_name; $sub_code"
+            or croak "Can't install invalid code: $@";
+    }
+    return $sub_code;
+}
 
 package UNIVERSAL;
 use base 'Sub::Installer';
@@ -63,7 +67,7 @@ Sub::Installer - A cleaner way to install (or reinstall) package subroutines
 
 =head1 VERSION
 
-This document describes Sub::Installer version 0.0.1
+This document describes Sub::Installer version 0.0.3
 
 
 =head1 SYNOPSIS
@@ -86,7 +90,7 @@ install subroutines in its own namespace.
 
 =over
 
-=item C<PackageName->install_sub(\%sub_specs)>
+=item C<< PackageName->install_sub(\%sub_specs) >>
 
 This method installs one or more subroutines in the package on which it's
 invoked. Each subroutine is specified as an entry in the hash whose reference
@@ -96,13 +100,13 @@ string containing the source code of the body of the subroutine.
 
 For example:
 
-    use Sub::Install;
+    use Sub::Installer;
 
-    MyClass->install({ new => sub { bless { @[1..$#_] }, $_[0] } });
+    MyClass->install_sub({ new => sub { bless { @[1..$#_] }, $_[0] } });
 
     # or, equivalently...
 
-    MyClass->install({ new => q{ bless { @[1..$#_] }, $_[0] } });
+    MyClass->install_sub({ new => q{ bless { @[1..$#_] }, $_[0] } });
 
 In either case, the method call returns a reference to the last
 subroutine that was installed (though this is generally only useful if
@@ -120,7 +124,7 @@ is just a cleaner and more maintainable way of writing:
     }
 
 
-=item C<PackageName->reinstall_sub(\%sub_specs)>
+=item C<< PackageName->reinstall_sub(\%sub_specs) >>
 
 This method acts exactly like C<install_sub()> except that it suppresses any
 C<Subroutine I<subname> redefined> warnings.

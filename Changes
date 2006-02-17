@@ -7,3 +7,12 @@ Revision history for Sub-Installer
 0.0.2  Sun May 22 05:45:41 2005
 
     - Noted dependencies on version.pm
+
+
+0.0.3  Fri Feb 17 16:06:45 2006
+
+    - Various doc nits unknotted (thanks Johan and Mike)
+
+    - Refactored utility sub out of UNIVERSAL hierarchy (thanks Johan)
+
+    - Added missing version.pm prereq (thanks to the many folks who reported it)
